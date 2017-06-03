@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /* 
  * File:   Maquina.cpp
  * Author: igor
@@ -22,3 +16,18 @@ Maquina::Maquina(const Maquina& orig) {
 Maquina::~Maquina() {
 }
 
+void Maquina:: setCustoPoluicao(int custoPoluicao){
+    this->custoPoluicao = custoPoluicao;
+}
+
+void Maquina:: setTarefas(Tarefa *tarefas){
+    this->tarefas = tarefas;
+}
+
+int Maquina:: getCustoPoluicao(){
+    return this->custoPoluicao;
+}
+
+Tarefa* Maquina:: getTarefas(){
+    return this->tarefas;
+}

@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /* 
  * File:   Tarefa.cpp
  * Author: igor
@@ -22,3 +16,34 @@ Tarefa::Tarefa(const Tarefa& orig) {
 Tarefa::~Tarefa() {
 }
 
+void Tarefa:: setDataEntrega(int dataEntrega){
+    this->dataEntrega = dataEntrega;
+}
+
+void Tarefa:: setPenalizacaoAtraso(int penalizacaoAtraso){
+    this->penalizacaoAtraso = penalizacaoAtraso;
+}
+
+void Tarefa:: setPenalizacaoAdiantamento(int penalizacaoAdiantamento){
+    this->penalizacaoAdiantamento = penalizacaoAdiantamento;
+}
+
+void Tarefa:: setTempoExecucaoMaquina(int *tempoExecucaoMaquina){
+    this->tempoExecucaoMaquina = tempoExecucaoMaquina;
+}
+    
+int Tarefa:: getDataEntrega(){
+    return this->dataEntrega;
+}
+
+int Tarefa:: getPenalizacaoAtraso(){
+    return this->penalizacaoAtraso;
+}
+
+int Tarefa:: getPenalizacaoAdiantamento(){
+    return this->penalizacaoAdiantamento;
+}
+
+int* Tarefa:: getTempoExecucaoMaquina(){
+    return this->tempoExecucaoMaquina;
+}

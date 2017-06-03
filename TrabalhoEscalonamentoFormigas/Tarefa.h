@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /* 
  * File:   Tarefa.h
  * Author: igor
@@ -15,12 +9,27 @@
 #define TAREFA_H
 
 class Tarefa {
+    
 public:
     Tarefa();
     Tarefa(const Tarefa& orig);
     virtual ~Tarefa();
+    
+    void setDataEntrega(int dataEntrega);
+    void setPenalizacaoAtraso(int penalizacaoAtraso);
+    void setPenalizacaoAdiantamento(int penalizacaoAdiantamento);
+    void setTempoExecucaoMaquina(int *tempoExecucaoMaquina);
+    
+    int getDataEntrega();
+    int getPenalizacaoAtraso();
+    int getPenalizacaoAdiantamento();
+    int* getTempoExecucaoMaquina();
+    
 private:
-
+    int dataEntrega;
+    int penalizacaoAtraso;
+    int penalizacaoAdiantamento;
+    int *tempoExecucaoMaquina;        // diferente para cada máquina
 };
 
 #endif /* TAREFA_H */

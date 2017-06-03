@@ -1,3 +1,5 @@
 Makefile
-TrabalhoEscalonamentoFormigas/nbproject/*
-
+/TrabalhoEscalonamentoFormigas/nbproject/*
+/TrabalhoEscalonamentoFormigas/build/
+/TrabalhoEscalonamentoFormigas/dist/
+/TrabalhoEscalonamentoFormigas/.dep.inc
