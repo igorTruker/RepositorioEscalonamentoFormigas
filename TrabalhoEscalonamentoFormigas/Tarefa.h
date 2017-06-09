@@ -15,29 +15,17 @@ public:
     Tarefa(int indice);
     virtual ~Tarefa();
     
-    void setDataEntrega(int dataEntrega);
-    void setPenalizacaoAtraso(int penalizacaoAtraso);
-    void setPenalizacaoAdiantamento(int penalizacaoAdiantamento);
-    void setTempoExecucaoMaquina(int *tempoExecucaoMaquina);
     void setProxima(Tarefa *proxima);
     void setIndice(int indice);
     
-    int getDataEntrega();
-    int getPenalizacaoAtraso();
-    int getPenalizacaoAdiantamento();
-    int* getTempoExecucaoMaquina();
     Tarefa* getProxima();
     int getIndice();
     
     void inicializarVetorTempoExecucaoTeste(int valor,int qntMaquinas);
-    void imprimirDados();
+    void imprimir();
     
 private:
     int indice;
-    int dataEntrega;
-    int penalizacaoAtraso;
-    int penalizacaoAdiantamento;
-    int *tempoExecucaoMaquina;        // diferente para cada máquina
     Tarefa *proxima;
 };
 

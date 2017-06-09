@@ -47,6 +47,6 @@ void Maquina::imprimirDados() {
     cout << "Custo poluicao : " << this->custoPoluicao << endl;
     
     for(int index = 0; index < (sizeof(this->tarefas)/sizeof(this->tarefas[0])); index++){
-        this->tarefas[index].imprimirDados();
+        this->tarefas[index].imprimir();
     }
 }

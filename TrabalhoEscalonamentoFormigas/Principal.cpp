@@ -11,52 +11,28 @@
 #include "Principal.h"
 #include "Maquina.h"
 #include "Formiga.h"
+#include "LerDados.h"
 
 using namespace std;
 
 Principal::Principal() {
     srand (time(NULL));
     this->qntTarefas = 0;
-    this->numColArestas = 0;
-    this->numLinhasArestas = 0;
-    this->numColMatrizFeromonio = 0;
-    this->numLinhasMatrizFeromonio = 0;
-}
-
-Principal::Principal(const Principal& orig) {
+    this->qntMaquinas = 0;
 }
 
 Principal::~Principal() {
     desalocarEstruturas();
     this->qntTarefas = 0;
-    this->numColArestas = 0;
-    this->numLinhasArestas = 0;
-    this->numColMatrizFeromonio = 0;
-    this->numLinhasMatrizFeromonio = 0;
+    this->qntMaquinas = 0;
 }
 
-void Principal:: setTempoSetup(int *arestas){
+void Principal:: setTempoSetup(int ***arestas){
     this->arestasSetup = arestas;
 }
 
 void Principal:: setMatrizFeromonio(int **matriz){
     this->matrizFeromonio = matriz;
-}
-
-void Principal:: setNumColArestas(int numColArestas){
-    this->numColArestas = numColArestas;
-}
-
-void Principal:: setNumLinhasArestas(int numLinhasArestas){
-    this->numLinhasArestas = numLinhasArestas;
-}
-
-void Principal:: setNumColMatrizFeromonio(int numColMatrizFeromonio){
-    this->numColMatrizFeromonio = numColMatrizFeromonio;
-}
-
-void Principal:: setNumLinhasMatrizFeromonio(int numLinhasMatrizFeromonio){
-    this->numLinhasMatrizFeromonio = numLinhasMatrizFeromonio;
 }
 
 void Principal:: setGrafo(Tarefa *grafo){
@@ -66,29 +42,41 @@ void Principal:: setGrafo(Tarefa *grafo){
 void Principal:: setQntTarefas(int qntTarefas){
     this->qntTarefas =qntTarefas;
 }
-    
-int* Principal:: getTempoSetup(){
+
+void Principal::setQntMaquinas(int qntMaquinas) {
+    this->qntMaquinas = qntMaquinas;
+}
+
+void Principal::setLimPoluicao(int poluicao) {
+    this->limitePoluicao = poluicao;
+}
+
+void Principal::setCustoMaquina(int *custoMaquina) {
+    this->custoMaquina = custoMaquina;
+}
+
+void Principal::setAlfa(int* alfa) {
+    this->alfa = alfa;
+}
+
+void Principal::setBeta(int* beta) {
+    this->beta = beta;
+}
+
+void Principal::setDataEntrega(int* dataEntrega) {
+    this->dataEntrega = dataEntrega;
+}
+
+void Principal::setMatrizTarefas(int** matrizTarefas) {
+    this->matrizTarefas = matrizTarefas;
+}
+
+int*** Principal:: getTempoSetup(){
     return this->arestasSetup;
 }
 
 int** Principal:: getMatrizFeromonio(){
     return this->matrizFeromonio;
-}
-
-int Principal:: getNumColArestas(){
-    return this->numColArestas;
-}
-
-int Principal:: getNumLinhasArestas(){
-    return this->numLinhasArestas;
-}
-
-int Principal::getNumColMatrizFeromonio(){
-    return this->numColMatrizFeromonio;
-}
-
-int Principal:: getNumLinhasMatrizFeromonio(){
-    return this->numLinhasMatrizFeromonio;
 }
 
 Tarefa* Principal:: getGrafo(){
@@ -97,6 +85,34 @@ Tarefa* Principal:: getGrafo(){
 
 int Principal::getQntTarefas(){
     return this->qntTarefas;
+}
+
+int Principal::getQntMaquinas() {
+    return this->qntMaquinas;
+}
+
+int Principal::getLimPoluicao() {
+    return this->limitePoluicao;
+}
+
+int* Principal::getCustoMaquina() {
+    return this->custoMaquina;
+}
+
+int* Principal::getAlfa() {
+    return this->alfa;
+}
+
+int* Principal::getBeta() {
+    return this->beta;
+}
+
+int* Principal::getDataEntrega() {
+    return this->dataEntrega;
+}
+
+int** Principal::getMatrizTarefas() {
+    return this->matrizTarefas;
 }
 
 /**
@@ -112,18 +128,37 @@ void Principal::inicializarMatrizFeromonio(int qntTarefas) {
 }
 
 /**
+ *  Inicializa as estruturas iniciais do programa.
+ */
+void Principal::inicializarEstruturas() {
+    LerDados *ler = new LerDados();
+    ler->lerArquivo("m2n5tau0.3R0.25eta0.25i0.txt");
+    
+    this->qntMaquinas = ler->getNumMaquinas();
+    this->qntTarefas = ler->getNumTarefas();
+    this->arestasSetup = ler->getSetupTarefas();
+    this->matrizTarefas = ler->getTarefas();
+    this->limitePoluicao = ler->getLimitePoluicao();
+    this->custoMaquina = ler->getCusto();
+    this->alfa = ler->getAlfa();
+    this->beta = ler->getBeta();
+    this->dataEntrega = ler->getDataEntrega();
+    
+    delete ler;
+    
+    inicializarMatrizFeromonio(this->qntTarefas);
+}
+
+/**
  *  Executa o procedimento principal do algoritmo.
  */
 void Principal::executar(){
-    int qntTarefas = 5;
-    int qntMaquinas = 3;
     bool notEnd = false;
     
-    criarGrafo(qntTarefas,qntMaquinas);
-    inicializarMatrizFeromonio(qntTarefas);   
+    inicializarEstruturas();
+    criarGrafo(this->qntTarefas,this->qntMaquinas);
     
-//    imprimirMatrizFeromonio();
-//    imprimirGrafo();
+    imprimirDados();
     
 //    while(!notEnd){
 //        
@@ -135,21 +170,16 @@ void Principal::executar(){
  * possui todas as tarefas, menos a tarefa indice do vetor.
  */
 void Principal :: criarGrafo(int qntTarefas, int qntMaquinas){
-    this->qntTarefas = qntTarefas;
     this->grafo = new Tarefa[this->qntTarefas];
     
     for(int index = 0; index < this->qntTarefas; index++){
         this->grafo[index].setIndice(index);
-        this->grafo[index].inicializarVetorTempoExecucaoTeste(getRandomNumero(100,1),qntMaquinas);
-    }
-    for(int index = 0; index < this->qntTarefas; index++){
         Tarefa *tarefa = &(this->grafo[index]);    
         
         for(int i = 0; i < this->qntTarefas; i++){
             if(i != index){
                 tarefa->setProxima(new Tarefa(i));
                 tarefa = tarefa->getProxima();
-                tarefa->inicializarVetorTempoExecucaoTeste(this->grafo[i].getTempoExecucaoMaquina()[0], qntMaquinas);
             }
         }
     }
@@ -209,8 +239,8 @@ void Principal :: desalocarEstruturas(){
         this->grafo[index].setProxima( desalocarNos(this->grafo[index].getProxima()));
     }
     delete [] this->grafo;
-    desalocarMatriz(this->arestasSetup,this->numLinhasArestas,this->numColArestas);
-    desalocarMatriz(this->matrizFeromonio,this->numLinhasMatrizFeromonio,this->numColMatrizFeromonio);
+    desalocarMatriz(this->arestasSetup,this->qntTarefas,this->qntTarefas);
+    desalocarMatriz(this->matrizFeromonio,this->qntTarefas,this->qntTarefas);
 }
 
 /**
@@ -228,14 +258,27 @@ Tarefa* Principal :: desalocarNos(Tarefa *no){
  * 
  */
 void Principal :: desalocarMatriz(int *matriz, int linhas, int colunas){
-    cout << "Não implementado ainda !" << endl;
+    delete [] matriz;
 }
 
 /**
  * 
  */
 void Principal :: desalocarMatriz(int **matriz, int linhas, int colunas){
-    cout << "Não implementado ainda !" << endl;
+    for(int index = 0; index < colunas; index++){
+        delete [] matriz[index];
+    }
+    delete [] matriz;
+}
+
+/**
+ * 
+ */
+void Principal :: desalocarMatriz(int ***matriz, int linhas, int colunas){
+    for(int index = 0; index < colunas; index++){
+        delete [] matriz[index];
+    }
+    delete [] matriz;
 }
 
 /**
@@ -243,4 +286,42 @@ void Principal :: desalocarMatriz(int **matriz, int linhas, int colunas){
  */
 int Principal :: getRandomNumero(int range, int limSup){
     return (rand() % range + limSup);
+}
+
+/**
+ * 
+ */
+void Principal :: imprimirDados(){
+    cout << "Numero de maquinas : " << this->qntMaquinas << endl;
+    cout << "Numero de tarefas : " << this->qntTarefas << endl;
+    cout << "Custo de maquinas : " << endl;
+    for(int i = 0; i < this->qntMaquinas; i++){
+        cout << this->custoMaquina[i] << " ";
+    }
+    cout << "\nTempos das tarefas : " << endl;
+    for(int i = 0; i < this->qntTarefas; i++){
+        for(int k = 0; k < this->qntMaquinas; k++){
+            cout << this->matrizTarefas[i][k] << " ";
+        }
+        cout << "\n";
+    }
+    cout << "\nSetup : " << endl;
+    for(int k = 0; k < this->qntMaquinas; k++){
+        for(int i = 0; i < this->qntTarefas; i++){
+            for(int j = 0; j < this->qntTarefas; j++){
+                cout << this->arestasSetup[i][j][k] << " ";
+            }
+            cout << endl;
+        }
+        cout << endl;
+    }
+    cout << "\nAlfa : " << endl;
+    for(int i = 0; i < this->qntTarefas; i++){
+        cout << this->alfa[i] << " ";
+    }
+    cout << "\nBeta : " << endl;
+    for(int i = 0; i < this->qntTarefas; i++){
+        cout << this->beta[i] << " ";
+    }
+    cout << "\nLimite de poluicao : " << this->limitePoluicao << "\n\n" << endl;
 }
