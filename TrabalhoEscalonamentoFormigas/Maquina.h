@@ -23,6 +23,9 @@ public:
     int getCustoPoluicao();
     Tarefa* getTarefas();
     
+    void criarTarefasCaminho(int qntTarefas);
+    void imprimirDados();
+    
 private:
     int custoPoluicao;
     Tarefa *tarefas;
