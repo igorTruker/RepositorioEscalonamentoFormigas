@@ -6,12 +6,12 @@
  */
 
 #include <iostream>
-#include <stdlib.h>
-#include <time.h>
 #include "Principal.h"
 #include "Maquina.h"
 #include "Formiga.h"
 #include "LerDados.h"
+#include "Grafo.h"
+#include <stdlib.h>
 
 using namespace std;
 
@@ -19,100 +19,30 @@ Principal::Principal() {
     srand (time(NULL));
     this->qntTarefas = 0;
     this->qntMaquinas = 0;
+    this->arestasSetup = NULL;
+    this->matrizTempoTarefas = NULL;
+    this->limitePoluicao = -1;
+    this->custoPoluicaoMaquina = NULL;
+    this->alfa = NULL;
+    this->beta = NULL;
+    this->dataEntrega = NULL;
 }
 
 Principal::~Principal() {
     desalocarEstruturas();
     this->qntTarefas = 0;
     this->qntMaquinas = 0;
-}
-
-void Principal:: setTempoSetup(int ***arestas){
-    this->arestasSetup = arestas;
-}
-
-void Principal:: setMatrizFeromonio(int **matriz){
-    this->matrizFeromonio = matriz;
-}
-
-void Principal:: setGrafo(Tarefa *grafo){
-    this->grafo = grafo;
-}
-
-void Principal:: setQntTarefas(int qntTarefas){
-    this->qntTarefas =qntTarefas;
-}
-
-void Principal::setQntMaquinas(int qntMaquinas) {
-    this->qntMaquinas = qntMaquinas;
-}
-
-void Principal::setLimPoluicao(int poluicao) {
-    this->limitePoluicao = poluicao;
-}
-
-void Principal::setCustoMaquina(int *custoMaquina) {
-    this->custoMaquina = custoMaquina;
-}
-
-void Principal::setAlfa(int* alfa) {
-    this->alfa = alfa;
-}
-
-void Principal::setBeta(int* beta) {
-    this->beta = beta;
-}
-
-void Principal::setDataEntrega(int* dataEntrega) {
-    this->dataEntrega = dataEntrega;
-}
-
-void Principal::setMatrizTarefas(int** matrizTarefas) {
-    this->matrizTarefas = matrizTarefas;
-}
-
-int*** Principal:: getTempoSetup(){
-    return this->arestasSetup;
-}
-
-int** Principal:: getMatrizFeromonio(){
-    return this->matrizFeromonio;
-}
-
-Tarefa* Principal:: getGrafo(){
-    return this->grafo;
+    this->arestasSetup = NULL;
+    this->matrizTempoTarefas = NULL;
+    this->limitePoluicao = -1;
+    this->custoPoluicaoMaquina = NULL;
+    this->alfa = NULL;
+    this->beta = NULL;
+    this->dataEntrega = NULL;
 }
 
 int Principal::getQntTarefas(){
     return this->qntTarefas;
-}
-
-int Principal::getQntMaquinas() {
-    return this->qntMaquinas;
-}
-
-int Principal::getLimPoluicao() {
-    return this->limitePoluicao;
-}
-
-int* Principal::getCustoMaquina() {
-    return this->custoMaquina;
-}
-
-int* Principal::getAlfa() {
-    return this->alfa;
-}
-
-int* Principal::getBeta() {
-    return this->beta;
-}
-
-int* Principal::getDataEntrega() {
-    return this->dataEntrega;
-}
-
-int** Principal::getMatrizTarefas() {
-    return this->matrizTarefas;
 }
 
 /**
@@ -124,6 +54,10 @@ void Principal::inicializarMatrizFeromonio(int qntTarefas) {
     
     for(int index = 0; index < qntTarefas; index++){
         this->matrizFeromonio[index] = new int[qntTarefas];
+        
+        for(int indexJ = 0; indexJ < qntTarefas; indexJ++){
+            this->matrizFeromonio[index][indexJ] = 0;
+        }
     }
 }
 
@@ -132,14 +66,16 @@ void Principal::inicializarMatrizFeromonio(int qntTarefas) {
  */
 void Principal::inicializarEstruturas() {
     LerDados *ler = new LerDados();
-    ler->lerArquivo("m2n5tau0.3R0.25eta0.25i0.txt");
+//    ler->lerArquivo("instancias/m2n5tau0.3R0.25eta0.25i0.txt");
+//    ler->lerArquivo("instancias/I3-m5n8-A.txt");
+    ler->lerArquivo("instancias/m3n50tau0.3R0.25eta0.25i4-I.D.txt");
     
     this->qntMaquinas = ler->getNumMaquinas();
     this->qntTarefas = ler->getNumTarefas();
     this->arestasSetup = ler->getSetupTarefas();
-    this->matrizTarefas = ler->getTarefas();
+    this->matrizTempoTarefas = ler->getTarefas();
     this->limitePoluicao = ler->getLimitePoluicao();
-    this->custoMaquina = ler->getCusto();
+    this->custoPoluicaoMaquina = ler->getCusto();
     this->alfa = ler->getAlfa();
     this->beta = ler->getBeta();
     this->dataEntrega = ler->getDataEntrega();
@@ -152,69 +88,130 @@ void Principal::inicializarEstruturas() {
 /**
  *  Executa o procedimento principal do algoritmo.
  */
-void Principal::executar(){
-    bool notEnd = false;
+void Principal::executar(){    
     
     inicializarEstruturas();
-    criarGrafo(this->qntTarefas,this->qntMaquinas);
+    criarGrafo(this->getQntTarefas());
     
-    imprimirDados();
+    bool notEnd = false;
+    double valorNormal = 0.0;
+    int *limiteMin = new int[this->qntMaquinas];/* Limite minimo de poluicao para gastar*/
+    int *valorAdic = new int[this->qntMaquinas]; /* Valor adicional para cada máquina*/
+    int extra = 0;
     
-//    while(!notEnd){
-//        
-//    }
+    int cont = 3;
+    
+    while(!notEnd){
+        valorNormal = 0.0;
+        calcularLimiteMinimo(limiteMin); 
+        extra = calcularExtra(limiteMin);
+        calcularValorAdicional(valorAdic,&valorNormal,extra,limiteMin);
+        
+        this->grafo->resetarSelecaoGrafo(); // reseta a seleção do grafo
+        
+        int indiceTarefa = getRandomNumero(this->qntTarefas,0);
+        
+        for(int indexFormiga = 0; indexFormiga < this->qntMaquinas; indexFormiga++){
+            Formiga *formigas = new Formiga();
+            
+            while(limiteMin[indexFormiga] > 0 && indiceTarefa != -1){                        
+                limiteMin[indexFormiga] =  limiteMin[indexFormiga]-(this->matrizTempoTarefas[indiceTarefa][indexFormiga] * this->custoPoluicaoMaquina[indexFormiga]);                
+//                cout << "Limite Min : " << limiteMin[indexFormiga] << endl;
+
+                if(limiteMin[indexFormiga] > 0){
+                    /*
+                     FAZER FUNÇÃO PARA ESCOLHER MELHOR CAMINHO  |  |  |
+                     *                                          V  V  V
+                     */
+                    formigas->adicionarTarefa( this->grafo->removerTarefa(indiceTarefa,indiceTarefa)); // alterar indice
+                    /* Selecionar proxima tarefa*/
+                    indiceTarefa = getProximaTarefaAleatoria();
+                }      
+            }
+            formigas->imprimirDados();
+            delete formigas;
+            cout <<"\n"<< endl;
+        }
+        
+        if(cont == 0)
+            notEnd = true;
+        else
+            cont -= 1;
+        
+        delete [] limiteMin;
+        delete [] valorAdic;
+    }
+}
+
+/*
+ * Retorna o vetor com o limite minimo de poluição para cada máquina
+ */
+void Principal::calcularLimiteMinimo(int *vetor) {
+    int menorPoluicao = 0;
+    int calcPoluicao = 0;
+    int maqMenorPoluicao = 0;
+    
+    for(int index = 0; index < this->qntMaquinas; index++){
+        vetor[index]= 0;
+    }    
+    menorPoluicao = this->custoPoluicaoMaquina[0] * this->matrizTempoTarefas[0][0];
+    
+    for(int index = 0; index < this->qntTarefas; index++){
+        maqMenorPoluicao = 0;
+        menorPoluicao = this->custoPoluicaoMaquina[maqMenorPoluicao] * this->matrizTempoTarefas[index][maqMenorPoluicao];
+        
+        for(int indexMaq = 1; indexMaq < this->qntMaquinas; indexMaq++){
+            calcPoluicao = this->custoPoluicaoMaquina[indexMaq] * this->matrizTempoTarefas[index][indexMaq];
+            if(menorPoluicao > calcPoluicao){
+                menorPoluicao = calcPoluicao;
+                maqMenorPoluicao = indexMaq;
+            }
+        }
+        vetor[maqMenorPoluicao] += menorPoluicao;
+    }
+    
+    for(int index = 0; index < this->qntMaquinas; index++){
+        cout << " Limite Min [ "<< index <<" ] : " << vetor[index] << endl;
+    }    
+}
+
+int Principal::calcularExtra(int *limiteMin) {
+    int extra = 0;
+    for(int index = 0; index < this->qntMaquinas; index++){
+        extra += limiteMin[index];
+    }
+    extra = this->limitePoluicao - extra;
+    cout << "Extra : " << extra << endl;
+    return extra;
+}
+
+void Principal::calcularValorAdicional(int* valorAdic, double *valorNormal, int extra, int* limiteMin) {
+    /* Inicializar o vetor da taxa adicional para com os valores aleatorios*/
+    for(int indexMaq = 0; indexMaq < this->qntMaquinas; indexMaq++){
+        valorAdic[indexMaq] = getRandomNumero(100,0);
+        *valorNormal += valorAdic[indexMaq];
+    }
+    
+    for(int indexMaq = 0; indexMaq < this->qntMaquinas; indexMaq++){
+        valorAdic[indexMaq] = (valorAdic[indexMaq]/ *valorNormal) * extra;
+        cout << " valor Adic : " <<  valorAdic[indexMaq] << endl;
+        limiteMin[indexMaq] += valorAdic[indexMaq];
+        cout << " Limite Min : " <<  limiteMin[indexMaq] << endl;
+    }
+}
+
+int Principal::getProximaTarefaAleatoria() {
+    int tarefasNaoMarcadas = this->qntTarefas - this->grafo->getNumTarefasMarcadas() ;
+    return this->grafo->getIndiceEnesimaTarefaNaoMarcada(tarefasNaoMarcadas);
 }
 
 /**
  *  Cria o grafo completo com as tarefas, em que cada posição do vetor 
  * possui todas as tarefas, menos a tarefa indice do vetor.
  */
-void Principal :: criarGrafo(int qntTarefas, int qntMaquinas){
-    this->grafo = new Tarefa[this->qntTarefas];
-    
-    for(int index = 0; index < this->qntTarefas; index++){
-        this->grafo[index].setIndice(index);
-        Tarefa *tarefa = &(this->grafo[index]);    
-        
-        for(int i = 0; i < this->qntTarefas; i++){
-            if(i != index){
-                tarefa->setProxima(new Tarefa(i));
-                tarefa = tarefa->getProxima();
-            }
-        }
-    }
-}
-
-/**
- * Cria um vetor de formigas do tamanho de qntFormigas e inicializa o vetor de 
- * tarefas (caminho) de cada uma.
- */
-Formiga* Principal :: criarFormiga(int qntFormigas,int qntTarefas){
-    Formiga *formiga = new Formiga[qntFormigas];
-    
-    for(int index = 0; index < qntFormigas; index++){
-        formiga[index] = Formiga();
-        formiga[index].criarTarefasCaminho(qntTarefas);
-    }
-    return formiga;
-}
-
-/**
- *  Imprime o grafo com suas tarefas alocadas.
- */
-void Principal :: imprimirGrafo(){
-    
-    for(int index = 0; index < this->qntTarefas; index++){
-        Tarefa *tarefa = &(this->grafo[index]);
-        
-        cout << "Origem | " << this->grafo[index].getIndice() << " | -> ";
-        
-        while(tarefa->getProxima() != NULL){
-            tarefa = tarefa->getProxima();
-            cout << tarefa->getIndice() << " -> ";
-        }
-        cout << endl;
-    }
+void Principal :: criarGrafo(int qntTarefas){
+    this->grafo = new Grafo(qntTarefas);
+    this->grafo->criarGrafoCompleto(qntTarefas);
 }
 
 /**
@@ -234,36 +231,15 @@ void Principal::imprimirMatrizFeromonio() {
  * Desaloca todas as estruturas.
  */
 void Principal :: desalocarEstruturas(){
-    
-    for(int index = 0; index < this->qntTarefas; index++){
-        this->grafo[index].setProxima( desalocarNos(this->grafo[index].getProxima()));
-    }
-    delete [] this->grafo;
+    delete this->grafo;
     desalocarMatriz(this->arestasSetup,this->qntTarefas,this->qntTarefas);
     desalocarMatriz(this->matrizFeromonio,this->qntTarefas,this->qntTarefas);
 }
 
-/**
- * 
- */
-Tarefa* Principal :: desalocarNos(Tarefa *no){
-    if(no->getProxima() != NULL){
-        no->setProxima( desalocarNos(no->getProxima()) );
-    }
-    delete no;
-    return NULL;
-}
-
-/**
- * 
- */
 void Principal :: desalocarMatriz(int *matriz, int linhas, int colunas){
     delete [] matriz;
 }
 
-/**
- * 
- */
 void Principal :: desalocarMatriz(int **matriz, int linhas, int colunas){
     for(int index = 0; index < colunas; index++){
         delete [] matriz[index];
@@ -271,9 +247,6 @@ void Principal :: desalocarMatriz(int **matriz, int linhas, int colunas){
     delete [] matriz;
 }
 
-/**
- * 
- */
 void Principal :: desalocarMatriz(int ***matriz, int linhas, int colunas){
     for(int index = 0; index < colunas; index++){
         delete [] matriz[index];
@@ -281,27 +254,17 @@ void Principal :: desalocarMatriz(int ***matriz, int linhas, int colunas){
     delete [] matriz;
 }
 
-/**
- * 
- */
-int Principal :: getRandomNumero(int range, int limSup){
-    return (rand() % range + limSup);
-}
-
-/**
- * 
- */
 void Principal :: imprimirDados(){
     cout << "Numero de maquinas : " << this->qntMaquinas << endl;
     cout << "Numero de tarefas : " << this->qntTarefas << endl;
     cout << "Custo de maquinas : " << endl;
     for(int i = 0; i < this->qntMaquinas; i++){
-        cout << this->custoMaquina[i] << " ";
+        cout << this->custoPoluicaoMaquina[i] << " ";
     }
     cout << "\nTempos das tarefas : " << endl;
     for(int i = 0; i < this->qntTarefas; i++){
         for(int k = 0; k < this->qntMaquinas; k++){
-            cout << this->matrizTarefas[i][k] << " ";
+            cout << this->matrizTempoTarefas[i][k] << " ";
         }
         cout << "\n";
     }
@@ -324,4 +287,12 @@ void Principal :: imprimirDados(){
         cout << this->beta[i] << " ";
     }
     cout << "\nLimite de poluicao : " << this->limitePoluicao << "\n\n" << endl;
+}
+
+/*
+ * Gera um valor aleatório => rand() % range + limSup.
+ * Ex: rand() % 100 + 1 => 1 a 99.
+ */
+int Principal::getRandomNumero(int range, int limInf) {
+    return (rand() % range + limInf);
 }

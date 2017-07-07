@@ -17,15 +17,18 @@ public:
     
     void setProxima(Tarefa *proxima);
     void setIndice(int indice);
+    void setSelecionada(bool selecionada);
     
     Tarefa* getProxima();
     int getIndice();
+    bool getSelecionada();
     
     void inicializarVetorTempoExecucaoTeste(int valor,int qntMaquinas);
     void imprimir();
     
 private:
     int indice;
+    bool selecionada;
     Tarefa *proxima;
 };
 

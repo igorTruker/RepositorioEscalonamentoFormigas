@@ -17,18 +17,21 @@ public:
     Maquina(const Maquina& orig);
     virtual ~Maquina();
     
-    void setCustoPoluicao(int custoPoluicao);
     void setTarefas(Tarefa *tarefas);
-    
-    int getCustoPoluicao();
     Tarefa* getTarefas();
     
-    void criarTarefasCaminho(int qntTarefas);
+    void adicionarTarefaLista(Tarefa *tarefaAnterior, Tarefa *tarefaEscolhida);
+    void adicionarTarefaAvulsa();
+    void adicionarTarefa(Tarefa *tarefa);
+    Tarefa* clonarTarefa(Tarefa *tarefa);
+    
     void imprimirDados();
     
+    
 private:
-    int custoPoluicao;
     Tarefa *tarefas;
+    
+    Tarefa* removerTarefas(Tarefa *tarefa);
 };
 
 #endif /* MAQUINA_H */

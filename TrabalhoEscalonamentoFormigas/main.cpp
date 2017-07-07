@@ -15,7 +15,6 @@ int main(int argc, char** argv) {
     
     Principal *p = new Principal();
     p->executar();
-//    p->imprimirGrafo();
     
     delete p;
     
