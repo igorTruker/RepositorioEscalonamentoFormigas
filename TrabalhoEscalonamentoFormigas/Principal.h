@@ -23,7 +23,7 @@ public:
     
     int getQntTarefas();
     
-    void inicializarMatrizFeromonio(int qntTarefas);
+    void inicializarMatrizFeromonio(int qntMaquinas,int qntTarefas);
     void inicializarEstruturas();
     
     void executar();
@@ -32,8 +32,15 @@ public:
     int calcularExtra(int *limiteMin);
     void calcularValorAdicional(int *valorAdic, double *valorNormal, int extra, int *limiteMin);
     
+    void atualizarFeromonio(Grafo *grafo,double taxaSolucao);
+    void evaporarFeromonio(Grafo *grafo,double taxaEvaporacao,double taxaSolucao);
+    void incrementarFeromonio(Grafo *grafo,double taxaEvaporacao,double taxaSolucao);
+    
     int getProximaTarefaAleatoria();    
     int getRandomNumero(int range, int limInf);
+    
+    Grafo* getBestSolutionFormiga();
+    void setBestSolutionFormiga(Grafo *bestSolutionFormiga);
     
     void imprimirMatrizFeromonio();
     void imprimirDados();
@@ -42,12 +49,13 @@ public:
     void desalocarMatriz(int *matriz, int linhas, int colunas);
     void desalocarMatriz(int **matriz, int linhas, int colunas);
     void desalocarMatriz(int ***matriz, int linhas, int colunas);
+    void desalocarMatriz(double ***matriz, int linhas, int colunas);
     
 private:
     int ***arestasSetup;                 // possui os tempos de setup entre as tarefas   TAMANHO (TAREFA X TAREFA)
-    int **matrizFeromonio;             // TAMANHO (TAREFA X TAREFA)
     int **matrizTempoTarefas;
     Grafo *grafo;                      // QNT TAREFAS
+    Grafo *bestSolutionFormiga;                      
     int qntTarefas;
     int qntMaquinas;
     int limitePoluicao;
@@ -56,6 +64,7 @@ private:
     int *alfa;
     int *beta;
     
+    double ***matrizFeromonio;             // TAMANHO (TAREFA X TAREFA)
 };
 
 #endif /* PRINCIPAL_H */

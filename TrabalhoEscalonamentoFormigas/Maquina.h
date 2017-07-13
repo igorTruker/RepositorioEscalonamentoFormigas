@@ -9,6 +9,7 @@
 #define MAQUINA_H
 
 #include "Tarefa.h"
+#include "Grafo.h"
 
 class Maquina {
     
@@ -20,10 +21,12 @@ public:
     void setTarefas(Tarefa *tarefas);
     Tarefa* getTarefas();
     
-    void adicionarTarefaLista(Tarefa *tarefaAnterior, Tarefa *tarefaEscolhida);
-    void adicionarTarefaAvulsa();
-    void adicionarTarefa(Tarefa *tarefa);
+//    void adicionarTarefaLista(Tarefa *tarefaAnterior, Tarefa *tarefaEscolhida);
+//    void adicionarTarefaAvulsa();
+//    void adicionarTarefa(Tarefa *tarefa);
+    void adicionarTarefaUltima(Tarefa* tarefa, int indiceMaquina, int **matrizTempoTarefa, int ***arestasSetup);
     Tarefa* clonarTarefa(Tarefa *tarefa);
+    void escolherMelhorCaminho(Grafo *grafo,int indiceMaquina, int indiceVetor,int ***matrizFeromonio);
     
     void imprimirDados();
     
