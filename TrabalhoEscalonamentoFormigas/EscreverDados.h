@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /* 
  * File:   EscreverDados.h
  * Author: igor
@@ -30,6 +24,7 @@ public:
     void abrirArquivo(string arquivo);
     void escreverDados(string dados);
     void escreverDadosSol(EstruturaSolucao *solucao);
+    void escreverFeromonio(double*** matriz,int qntTarefas,int qntMaquinas);
     void fecharArquivo();
 private:
     ofstream arquivo;

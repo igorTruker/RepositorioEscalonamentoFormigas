@@ -82,7 +82,6 @@ void Maquina::adicionarTarefaUltima(Tarefa* tarefa, int indiceMaquina, int **mat
         this->tarefas = tarefa;
         this->tarefas->setTempoInicio(0);
         this->tarefas->setTempoTermino(matrizTempoTarefa[tarefa->getIndice()][indiceMaquina]);
-//        cout << "indice : " << tarefa->getIndice() << " Maq : " << indiceMaquina << " Tempo : " << matrizTempoTarefa[tarefa->getIndice()][indiceMaquina] << endl;
     }else{
         Tarefa *t = this->tarefas;
         t->setAnterior(tarefa);

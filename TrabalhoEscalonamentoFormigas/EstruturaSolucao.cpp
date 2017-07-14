@@ -40,7 +40,7 @@ void EstruturaSolucao::calcularFuncaoObj(int *dataEntrega, int *alfa, int *beta)
     int penalidade = 0;
     int diferenca = 0;
     
-    this->imprimirGrafo();
+//    this->imprimirGrafo();
     
     for(int indice = 0; indice < this->getTamanho(); indice++){
         Tarefa *t = this->getGrafo()[indice]->getProxima();

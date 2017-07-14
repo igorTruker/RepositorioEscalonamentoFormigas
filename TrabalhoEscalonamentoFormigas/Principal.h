@@ -22,7 +22,7 @@ using namespace std;
 class Principal {
     
 public:
-    Principal();
+    Principal(string nomeArquivo);
     Principal(const Principal& orig);
     virtual ~Principal();
     
@@ -50,6 +50,8 @@ public:
     int getProximaTarefaAleatoria();    
     int getRandomNumero(int range, int limInf);
     int getQntTarefas();
+    int getQntMaquinas();
+    double ***getMatrizFeromonio();
     
     EstruturaSolucao* getBestSolutionFormiga();
     void setBestSolutionFormiga(EstruturaSolucao *bestSolutionFormiga);
@@ -62,6 +64,8 @@ public:
     void desalocarMatriz(int **matriz, int linhas, int colunas);
     void desalocarMatriz(int ***matriz, int linhas, int colunas);
     void desalocarMatriz(double ***matriz, int linhas, int colunas);
+    
+    bool ehViavel(EstruturaSolucao *solucao);
     
     const static int numIteracao = 100;
     const static int numTentativas = 50;
@@ -79,6 +83,7 @@ private:
     int *beta;
     
     double ***matrizFeromonio;             // TAMANHO (TAREFA X TAREFA)
+    string nomeArquivo;
 };
 
 #endif /* PRINCIPAL_H */
