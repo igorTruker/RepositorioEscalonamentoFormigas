@@ -19,23 +19,23 @@ public:
     
     void criarGrafoCompleto(int tamanho);
     Tarefa* removerTarefa(int indiceVet,int indiceTar);
-    void finalizarGrafo();
-    void resetarSelecaoGrafo();
     
     int getNumTarefasMarcadas();
     int getIndiceEnesimaTarefaNaoMarcada(int n);
-    int getFuncaoObj();
-    Tarefa* getListaTarefa(int indiceVetor);
+    Tarefa* getListaTarefaProxima(int indiceVetor);
     Tarefa* getListaTarefaTotal(int indiceVetor);
     
-    void criarGrafoVetor(int tamanho);
-    void setListaSolucao(Tarefa *lista, int indiceVetor);
-    void setFuncaoObj(int funcaoObj);
-    void calcularFuncaoObj(int *dataEntrega, int *alfa, int *beta);
+    int getTamanho();
+    Tarefa** getGrafo();
     
+    void setGrafo(Tarefa **grafo);
+    void setTamanho(int tamanho);
+        
     bool estaVazio();
     bool ehViavel();
-    void transferirTarefas(Grafo *grafo);
+    
+    void finalizarGrafo();
+    void resetarSelecaoGrafo();
     
     void imprimirGrafo();
     void imprimirVetor();
@@ -43,7 +43,6 @@ public:
 private:
     Tarefa **grafo;
     int tamanho;
-    int funcaoObj;
     
     Tarefa* eliminarTarefa(Tarefa *tarefa);
 };

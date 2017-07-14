@@ -16,7 +16,7 @@ class LerDados {
 public:
     LerDados();
     virtual ~LerDados();
-    void lerArquivo(string file);
+    bool lerArquivo(string file);
 
     int** getTarefas();
     int*** getSetupTarefas();

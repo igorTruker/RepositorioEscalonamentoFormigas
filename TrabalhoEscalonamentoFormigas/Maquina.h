@@ -26,7 +26,6 @@ public:
 //    void adicionarTarefa(Tarefa *tarefa);
     void adicionarTarefaUltima(Tarefa* tarefa, int indiceMaquina, int **matrizTempoTarefa, int ***arestasSetup);
     Tarefa* clonarTarefa(Tarefa *tarefa);
-    void escolherMelhorCaminho(Grafo *grafo,int indiceMaquina, int indiceVetor,int ***matrizFeromonio);
     
     void imprimirDados();
     

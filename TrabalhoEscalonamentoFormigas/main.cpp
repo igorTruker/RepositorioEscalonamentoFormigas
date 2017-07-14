@@ -11,12 +11,19 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-    cout << "Funcionou !" << endl;
     
-    Principal *p = new Principal();
-    p->executar();
+    EscreverDados *escritor = new EscreverDados();
+    escritor->abrirArquivo("saidaSolucao.txt");
     
-    delete p;
+//    for(int index = 0; index < Principal::numTentativas; index++){
+//    for(int index = 0; index < 2; index++){
+        Principal *p = new Principal();
+        p->executar();
+        escritor->escreverDadosSol(p->getBestSolutionFormiga());
+        delete p;
+//    }
+    escritor->fecharArquivo();
+    delete escritor;
     
     return 0;
 }

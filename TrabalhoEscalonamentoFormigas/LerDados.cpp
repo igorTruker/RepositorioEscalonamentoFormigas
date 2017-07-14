@@ -35,7 +35,7 @@ LerDados::~LerDados(){
     this->setupTarefas = NULL;
 }
 
-void LerDados :: lerArquivo(string file){
+bool LerDados :: lerArquivo(string file){
     ifstream arquivo (file.c_str());
     int k = 0,j = 0;
     string informacao = string();
@@ -200,9 +200,11 @@ void LerDados :: lerArquivo(string file){
 
     }else{
         cout << "Não foi possível abrir o arquivo !" << endl;
+        return false;
     }
 
     arquivo.close();
+    return true;
 }
 
 int** LerDados :: getTarefas(){

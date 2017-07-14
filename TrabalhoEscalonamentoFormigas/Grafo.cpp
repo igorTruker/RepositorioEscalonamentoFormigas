@@ -15,13 +15,11 @@ using namespace std;
 Grafo::Grafo() {
     this->grafo = NULL;
     this->tamanho = 0;
-    this->funcaoObj = 0;
 }
 
 Grafo::Grafo(int tamanho) {
     this->grafo = NULL;
     this->tamanho = tamanho;
-    this->funcaoObj = 0;
 }
 
 Grafo::Grafo(const Grafo& orig) {
@@ -70,7 +68,7 @@ void Grafo::finalizarGrafo() {
 }
 
 Tarefa* Grafo::eliminarTarefa(Tarefa* tarefa) {
-    if(tarefa->getProxima() != NULL){
+    if((tarefa != NULL)&&(tarefa->getProxima() != NULL)){
         tarefa->setProxima(eliminarTarefa(tarefa->getProxima()));
     }
     delete tarefa;
@@ -84,11 +82,11 @@ void Grafo::imprimirGrafo(){
     for(int index = 0; index < this->tamanho; index++){
         Tarefa *tarefa = this->grafo[index];
         
-        cout << "Origem | " << this->grafo[index]->getIndice() << ":: S=" << this->grafo[index]->getSelecionada() << " | -> ";
+        cout << "\nOrigem | " << this->grafo[index]->getIndice() << ":: S=" << this->grafo[index]->getSelecionada() << " | -> ";
         
         while(tarefa->getProxima() != NULL){
             tarefa = tarefa->getProxima();
-            cout << " # " <<  tarefa->getIndice() << " # -> ";
+            cout << " # " <<  tarefa->getIndice() << " ("<<tarefa->getTempoInicio() <<","<<tarefa->getTempoTermino() <<") # -> ";
 //                    << " S=" << tarefa->getSelecionada() << " # -> ";
         }
         cout << endl;
@@ -138,56 +136,6 @@ void Grafo::imprimirVetor() {
     }
 }
 
-
-// MAQUINA
-void Grafo::criarGrafoVetor(int tamanho) {
-    Tarefa **a = new Tarefa*[tamanho];
-//    this->grafo = new Tarefa*[tamanho];
-    this->grafo = a;
-    this->tamanho = tamanho;
-    
-    for(int index = 0; index < tamanho; index++){
-        this->grafo[index] = new Tarefa(index);        
-    }
-}
-
-// MAQUINA
-void Grafo::setListaSolucao(Tarefa* lista, int indiceVetor) {
-    this->grafo[indiceVetor]->setProxima(lista);
-}
-
-// MAQUINA
-void Grafo::calcularFuncaoObj(int *dataEntrega, int *alfa, int *beta) {
-    int penalidade = 0;
-    int diferenca = 0;
-    
-    for(int indice = 0; indice < this->tamanho; indice++){
-        Tarefa *t = this->grafo[indice];
-        
-        while(t->getProxima() != NULL){
-            diferenca = dataEntrega[t->getIndice()] - t->getTempoTermino();
-            
-            if(diferenca > 0){
-                penalidade += diferenca * alfa[t->getIndice()];
-            }else{
-                penalidade += (abs(diferenca))*beta[t->getIndice()];
-            }
-            t = t->getProxima();
-        }
-    }
-    this->funcaoObj = penalidade;
-}
-
-// MAQUINA
-int Grafo::getFuncaoObj() {
-    return this->funcaoObj;
-}
-
-// MAQUINA
-void Grafo::setFuncaoObj(int funcaoObj) {
-    this->funcaoObj = funcaoObj;
-}
-
 bool Grafo::estaVazio() {
     for(int indice = 0; indice < this->tamanho; indice++){
         if(this->grafo[indice]->getProxima() != NULL){
@@ -197,7 +145,7 @@ bool Grafo::estaVazio() {
     return true;
 }
 
-Tarefa* Grafo::getListaTarefa(int indiceVetor) {
+Tarefa* Grafo::getListaTarefaProxima(int indiceVetor) {
     return this->grafo[indiceVetor]->getProxima();
 }
 
@@ -205,11 +153,8 @@ Tarefa* Grafo::getListaTarefaTotal(int indiceVetor) {
     return this->grafo[indiceVetor];
 }
 
-void Grafo::transferirTarefas(Grafo* grafo) {
-    for(int indice = 0; indice < this->tamanho; indice++){
-        this->grafo[indice]->setProxima( grafo->getListaTarefa(indice) );
-        grafo->setListaSolucao(NULL,indice);
-    }
+void Grafo::setGrafo(Tarefa** grafo) {
+    this->grafo = grafo;
 }
 
 bool Grafo::ehViavel() {
@@ -219,4 +164,16 @@ bool Grafo::ehViavel() {
         }
     }
     return true;
+}
+
+Tarefa** Grafo::getGrafo() {
+    return this->grafo;
+}
+
+int Grafo::getTamanho() {
+    return this->tamanho;
+}
+
+void Grafo::setTamanho(int tamanho) {
+    this->tamanho = tamanho;
 }

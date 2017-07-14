@@ -106,23 +106,11 @@ Tarefa* Maquina::clonarTarefa(Tarefa* tarefa) {
     return t;
 }
 
-void Maquina::escolherMelhorCaminho(Grafo* grafo, int indiceMaquina, int indiceVetor, int ***matrizFeromonio) {
-    Tarefa *t = grafo->getListaTarefaTotal(indiceVetor);
-    int indiceAtual = t->getIndice();
-    
-    while(t->getProxima() != NULL){
-        t = t->getProxima();
-        
-        int indiceProximo = t->getIndice();
-//        matrizFeromonio[indiceMaquina][indiceAtual][indiceProximo] 
-    }
-}
-
 void Maquina::imprimirDados() {
     Tarefa *tarefa = this->tarefas;
     
     if(tarefa != NULL){
-        cout << "Tarefa : " << tarefa->getIndice() << " ( " << tarefa->getTempoInicio() << " , " << tarefa->getTempoTermino() << " ) -> ";
+        cout << "\nTarefa : " << tarefa->getIndice() << " ( " << tarefa->getTempoInicio() << " , " << tarefa->getTempoTermino() << " ) -> ";
         while(tarefa->getProxima() != NULL){
             tarefa = tarefa->getProxima();
             cout << tarefa->getIndice() << " ( " << tarefa->getTempoInicio() << " , " << tarefa->getTempoTermino() << " ) -> ";

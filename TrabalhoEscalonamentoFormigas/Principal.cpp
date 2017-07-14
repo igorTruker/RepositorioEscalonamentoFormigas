@@ -66,29 +66,37 @@ void Principal::inicializarMatrizFeromonio(int qntMaquinas,int qntTarefas) {
 /**
  *  Inicializa as estruturas iniciais do programa.
  */
-void Principal::inicializarEstruturas() {
+bool Principal::inicializarEstruturas() {
+    
     LerDados *ler = new LerDados();
-//    ler->lerArquivo("instancias/m2n5tau0.3R0.25eta0.25i0.txt");
+//    bool existeArquivo = ler->lerArquivo("instancias/m2n5tau0.3R0.25eta0.25i0.txt");
+//    bool existeArquivo = ler->lerArquivo("instancias/m2n5tau0.3R0.25eta0.25i0.txt-I.A.txt");
 //    ler->lerArquivo("instancias/I3-m5n8-A.txt");
 //    ler->lerArquivo("instancias/m3n50tau0.3R0.25eta0.25i4-I.D.txt");
-    ler->lerArquivo("instancias/m2n20tau0.3R0.25eta0.25i5.txt-I.C.txt");
+    bool existeArquivo = ler->lerArquivo("instancias/m2n20tau0.3R0.25eta0.25i5.txt-I.E.txt");
+//    bool existeArquivo = ler->lerArquivo("instancias/m2n10tau0.3R0.25eta0.25i0-I.D.txt");
     
-    this->qntMaquinas = ler->getNumMaquinas();
-    this->qntTarefas = ler->getNumTarefas();
-    this->arestasSetup = ler->getSetupTarefas();
-    this->matrizTempoTarefas = ler->getTarefas();
-    this->limitePoluicao = ler->getLimitePoluicao();
-    this->custoPoluicaoMaquina = ler->getCusto();
-    this->alfa = ler->getAlfa();
-    this->beta = ler->getBeta();
-    this->dataEntrega = ler->getDataEntrega();
-    
-    delete ler;
-    
-    inicializarMatrizFeromonio(this->qntMaquinas,this->qntTarefas);
-    
-    this->bestSolutionFormiga = new Grafo();
-    this->bestSolutionFormiga->criarGrafoVetor(this->qntMaquinas);
+    if(existeArquivo){
+        this->qntMaquinas = ler->getNumMaquinas();
+        this->qntTarefas = ler->getNumTarefas();
+        this->arestasSetup = ler->getSetupTarefas();
+        this->matrizTempoTarefas = ler->getTarefas();
+        this->limitePoluicao = ler->getLimitePoluicao();
+        this->custoPoluicaoMaquina = ler->getCusto();
+        this->alfa = ler->getAlfa();
+        this->beta = ler->getBeta();
+        this->dataEntrega = ler->getDataEntrega();
+
+        delete ler;
+
+        inicializarMatrizFeromonio(this->qntMaquinas,this->qntTarefas);
+
+        this->bestSolutionFormiga = new EstruturaSolucao();
+        this->bestSolutionFormiga->criarGrafoVetor(this->qntMaquinas);
+    }else{
+        cout << "Não existe arquivo !" << endl;
+    }
+    return existeArquivo;
 }
 
 /**
@@ -96,108 +104,282 @@ void Principal::inicializarEstruturas() {
  */
 void Principal::executar(){    
     
-    inicializarEstruturas();
-    criarGrafo(this->getQntTarefas());
+//    EscreverDados *teste = new EscreverDados();
+//    teste->abrirArquivo("teste.txt");
     
-    bool notEnd = false;
-    double valorNormal = 0.0;
-    int *limiteMin = new int[this->qntMaquinas];/* Limite minimo de poluicao para gastar*/
-    int *valorAdic = new int[this->qntMaquinas]; /* Valor adicional para cada máquina*/
-    int extra = 0;
-    int numGeracoes = 7;
-    
-    // solucao inicial
-    Grafo *solucaoMaquina = new Grafo();
-    solucaoMaquina->criarGrafoVetor(this->qntMaquinas);
-    
-    while(!notEnd){
-        valorNormal = 0.0;
-        calcularLimiteMinimo(limiteMin); 
-        extra = calcularExtra(limiteMin);
-        calcularValorAdicional(valorAdic,&valorNormal,extra,limiteMin);
+    if(inicializarEstruturas()){
+        criarGrafo(this->getQntTarefas());
         
-//        this->grafo->imprimirVetor();
-        this->grafo->resetarSelecaoGrafo(); // reseta a seleção do grafo
-        
-        int indiceTarefa = getRandomNumero(this->qntTarefas,0);
-        int indiceTarefaAnterior = indiceTarefa;
-        
-        for(int indexFormiga = 0; indexFormiga < this->qntMaquinas; indexFormiga++){
-            Formiga *formigas = new Formiga();
-            
-            while(limiteMin[indexFormiga] > 0 && indiceTarefa != -1){                        
-                limiteMin[indexFormiga] =  limiteMin[indexFormiga]-(this->matrizTempoTarefas[indiceTarefa][indexFormiga] * this->custoPoluicaoMaquina[indexFormiga]);                
-//                cout << "Limite Min : " << limiteMin[indexFormiga] << endl;
+        bool notEnd = false;
+        double valorNormal = 0.0;
+        int *limiteMin = new int[this->qntMaquinas];/* Limite minimo de poluicao para gastar*/
+        int *valorAdic = new int[this->qntMaquinas]; /* Valor adicional para cada máquina*/
+        int extra = 0;
+        int numGeracoes = numIteracao;
 
-                if(limiteMin[indexFormiga] > 0){
-                    formigas->escolherMelhorCaminho(this->grafo, indiceTarefaAnterior,matrizFeromonio);
-                    Tarefa *t = this->grafo->removerTarefa(indiceTarefaAnterior,indiceTarefa);
-                    formigas->adicionarTarefaUltima(t,indexFormiga,matrizTempoTarefas,arestasSetup); // alterar indice
-                    indiceTarefaAnterior = indiceTarefa;
-                    /* Selecionar proxima tarefa*/
-                    indiceTarefa = getProximaTarefaAleatoria();
-                }      
+        // solucao inicial
+        EstruturaSolucao *solucaoMaquina = new EstruturaSolucao();
+        solucaoMaquina->criarGrafoVetor(this->qntMaquinas);
+
+        while(!notEnd){
+            valorNormal = 0.0;
+            calcularLimiteMinimo(limiteMin); 
+            calcularValorAdicional(valorAdic,&valorNormal,extra,limiteMin);
+
+            this->grafo->resetarSelecaoGrafo(); // reseta a seleção do grafo
+
+            int indiceTarefa = getRandomNumero(this->qntTarefas,0);
+            int indiceTarefaAnterior = indiceTarefa;
+
+            for(int indexFormiga = 0; indexFormiga < this->qntMaquinas; indexFormiga++){
+                Formiga *formigas = new Formiga();
+
+                while(limiteMin[indexFormiga] > 0 && indiceTarefa != -1){                        
+                    limiteMin[indexFormiga] =  limiteMin[indexFormiga]-(this->matrizTempoTarefas[indiceTarefa][indexFormiga] * this->custoPoluicaoMaquina[indexFormiga]);                
+
+                    if(limiteMin[indexFormiga] > 0){
+                        double totalFeromonio = calcularTotalFeromonio(this->grafo,indexFormiga,indiceTarefaAnterior,matrizFeromonio);
+                        indiceTarefa = escolherMelhorCaminho(this->grafo, indiceTarefaAnterior,totalFeromonio,indexFormiga);
+
+                        Tarefa *tarefaRemovida = this->grafo->removerTarefa(indiceTarefaAnterior,indiceTarefa);
+                        formigas->adicionarTarefaUltima(tarefaRemovida,indexFormiga,matrizTempoTarefas,arestasSetup); // alterar indice
+                        indiceTarefaAnterior = indiceTarefa;
+                        
+                        cout << endl;
+//                        this->grafo->imprimirVetor();
+                    }      
+                }
+//                formigas->imprimirDados();
+                
+                solucaoMaquina->setListaSolucao(formigas->getTarefas(),indexFormiga);
+                delete formigas;
             }
-            formigas->imprimirDados();
+//            teste->escreverDadosSol(solucaoMaquina);
             
-            solucaoMaquina->setListaSolucao(formigas->getTarefas(),indexFormiga);
+            solucaoMaquina->imprimirGrafo();
             
-            delete formigas;
-            cout <<"\n"<< endl;
-        }
-        
-        if(this->grafo->ehViavel()){
-            double taxaSolucao = 0;
-            
-            if(this->bestSolutionFormiga->estaVazio()){
-                this->bestSolutionFormiga->transferirTarefas(solucaoMaquina);
-                this->bestSolutionFormiga->calcularFuncaoObj(dataEntrega,alfa,beta);
-                cout << "\n XXXXXXXXXXXXXXXXXXXXXXX \n Funcao primeira : " << bestSolutionFormiga->getFuncaoObj() << " \n XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX \n" << endl;
-                taxaSolucao = 1;
-                atualizarFeromonio(this->bestSolutionFormiga,taxaSolucao);
+            if(this->grafo->ehViavel()){
+                double taxaSolucao = 0;
                 
-            }else{
-                solucaoMaquina->calcularFuncaoObj(dataEntrega,alfa,beta);
-                
-                taxaSolucao = ((double)this->bestSolutionFormiga->getFuncaoObj() / (double)solucaoMaquina->getFuncaoObj() );
-                atualizarFeromonio(solucaoMaquina,taxaSolucao);
-                
-                cout << "\n Funcao atual : " << solucaoMaquina->getFuncaoObj() << " funcao melhor : " << this->bestSolutionFormiga->getFuncaoObj() << endl;
-
-                if(this->bestSolutionFormiga->getFuncaoObj() > solucaoMaquina->getFuncaoObj()){
-                    this->bestSolutionFormiga->finalizarGrafo();
-                    this->bestSolutionFormiga->transferirTarefas(solucaoMaquina);
-                    this->bestSolutionFormiga->setFuncaoObj( solucaoMaquina->getFuncaoObj());
-                    
-                    numGeracoes = 7;
-                    
-                    cout << "\n------------------------------------------------------------\n";
-                    this->bestSolutionFormiga->imprimirGrafo();
-                    cout << "\n------------------------------------------------------------\n";
-                    
-                }else{
-                    solucaoMaquina->finalizarGrafo();
+                if(solucaoMaquina->getFuncaoObj() > 0){
+                    // Ociosidade
+                    for(int index = 0; index < this->qntMaquinas; index++){
+                        inserirOciosidade(solucaoMaquina,index);
+                    }
                 }
                 
-                imprimirMatrizFeromonio();
+                if(this->bestSolutionFormiga->estaVazio()){
+                    atualizarBestSolucaoVazia(solucaoMaquina,&taxaSolucao);
+                }else{
+                    atualizarBestSolucao(solucaoMaquina,&taxaSolucao,&numGeracoes);
+                }
+                
+            }else{
+                cout << "<<<<<<<<< " << numGeracoes << " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> DEU RUIM <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
+                solucaoMaquina->finalizarGrafo();
             }
-        }else{
-            cout << "<<<<<<<<< " << numGeracoes << " >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> DEU RUIM <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
-            solucaoMaquina->finalizarGrafo();
+
+            if(numGeracoes == 0)
+                notEnd = true;
+            else
+                numGeracoes -= 1;
+
+            delete [] limiteMin;
+            delete [] valorAdic;
         }
+
+//        cout << "\n\n" << endl;
+//        this->bestSolutionFormiga->imprimirGrafo();
+//        cout << " Funcao Obj : " << this->bestSolutionFormiga->getFuncaoObj() << endl;
+//        cout << endl;
         
-        if(numGeracoes == 0)
-            notEnd = true;
-        else
-            numGeracoes -= 1;
-        
-        delete [] limiteMin;
-        delete [] valorAdic;
+    }else{
+        cout << "Não foi possível rodar !" << endl;
     }
     
-    cout << "\n\n";
-    this->bestSolutionFormiga->imprimirGrafo();
-    cout << endl;
+//    delete teste;
+}
+
+void Principal::inserirOciosidade(EstruturaSolucao* estruturaSolucao, int indiceMaquina) {
+    int tarefa = 0;
+    int tempoTermino = 0;
+    int tarefaAnterior = 0;
+    int firstTask = 0;
+    int lastTask = 0;
+    int qntTarefas = 0;
+    
+    if(estruturaSolucao->getListaTarefaProxima(indiceMaquina) != NULL){
+        Tarefa *tarefaA = estruturaSolucao->getListaTarefaProxima(indiceMaquina);
+        
+        while(tarefaA->getProxima() != NULL){
+            tarefaA = tarefaA->getProxima();
+            qntTarefas += 1;
+        }
+        
+        firstTask = tarefaA->getIndice();
+        tarefa = firstTask;
+        
+        if(dataEntrega[tarefa] >= matrizTempoTarefas[tarefa][indiceMaquina]){
+            tempoTermino = dataEntrega[tarefa];
+        }else{
+            tempoTermino = matrizTempoTarefas[tarefa][indiceMaquina];
+        }
+        tarefaA->setTempoTermino(tempoTermino);
+        tarefaA->setTempoInicio(tempoTermino - matrizTempoTarefas[tarefa][indiceMaquina]);
+        
+        tarefaAnterior = tarefa;
+        
+        cout << " Etapa 1" << endl;
+        
+        for(int index = 0; index < qntTarefas; index++){
+            tarefaA = estruturaSolucao->getListaTarefaProxima(indiceMaquina);
+            while(tarefaA->getProxima()->getIndice() != tarefaAnterior){
+                tarefaA = tarefaA->getProxima();
+            }
+            
+            if((tarefaA->getProxima()->getTempoTermino() + arestasSetup[tarefaA->getProxima()->getIndice()][tarefaA->getIndice()][indiceMaquina] + matrizTempoTarefas[tarefaA->getIndice()][indiceMaquina]) < dataEntrega[tarefaA->getIndice()]){
+                firstTask = tarefaA->getIndice();
+                lastTask = tarefaA->getIndice();
+                tarefaA->setTempoTermino( dataEntrega[tarefaA->getIndice()]);
+                tarefaA->setTempoInicio( dataEntrega[tarefaA->getIndice()] - arestasSetup[tarefaA->getProxima()->getIndice()][tarefaA->getIndice()][indiceMaquina] - matrizTempoTarefas[tarefaA->getIndice()][indiceMaquina]);
+            }else{
+                lastTask = tarefaA->getIndice();
+                tarefaA->setTempoTermino( tarefaA->getProxima()->getTempoTermino() + arestasSetup[tarefaA->getProxima()->getIndice()][tarefaA->getIndice()][indiceMaquina] + matrizTempoTarefas[tarefaA->getIndice()][indiceMaquina]);
+                tarefaA->setTempoInicio(tarefaA->getProxima()->getTempoTermino());
+            }
+            
+            cout << " Etapa 2" << endl;
+            moverBloco(estruturaSolucao,indiceMaquina,lastTask,firstTask);
+            tarefaAnterior = tarefaA->getIndice();
+        }
+    }
+}
+
+void Principal::moverBloco(EstruturaSolucao* estruturaSolucao,int indiceMaquina, int lastTask, int firstTask) {
+    
+    int funcaoObj = estruturaSolucao->getFuncaoObj();
+    int novaFuncaoObj = funcaoObj;
+    int Cmax = estruturaSolucao->getListaTarefaProxima(indiceMaquina)->getTempoTermino();
+    Tarefa *tarefaA;
+    Tarefa *tarefaB = estruturaSolucao->getListaTarefaProxima(indiceMaquina);
+    
+    // encontra a ultima tarefa do bloco
+    while((tarefaB->getProxima() != NULL)&&(tarefaB->getIndice() != lastTask)){
+        tarefaB = tarefaB->getProxima();
+    }
+    tarefaA = tarefaB;
+    
+    cout << " Etapa 3" << endl;
+    // adianta bloco
+    while(novaFuncaoObj < funcaoObj){
+        funcaoObj = estruturaSolucao->getFuncaoObj();
+        tarefaB = tarefaA;
+        
+        cout << " Funcao Obj " << funcaoObj << endl;
+        
+        while(tarefaB->getIndice() != firstTask){
+            tarefaB->setTempoInicio( tarefaB->getTempoInicio() - 1);
+            tarefaB->setTempoTermino( tarefaB->getTempoTermino() - 1);
+            tarefaB = tarefaB->getProxima();
+        }
+        tarefaB->setTempoInicio( tarefaB->getTempoInicio() - 1);
+        tarefaB->setTempoTermino( tarefaB->getTempoTermino() - 1);
+        
+        novaFuncaoObj = estruturaSolucao->getFuncaoObj();
+        
+//        cout << "Func Nova : " << novaFuncaoObj << endl;
+        
+        if((tarefaB->getProxima() != NULL) && (tarefaB->getTempoInicio() < tarefaB->getProxima()->getTempoTermino())){
+            novaFuncaoObj = funcaoObj + 1;
+        }
+        if((tarefaB->getProxima() != NULL) && (tarefaB->getTempoInicio() < 0)){
+            novaFuncaoObj = funcaoObj + 1;
+        }
+    }
+    
+    cout << " Etapa 4" << endl;
+    
+    tarefaB = tarefaA;
+    
+    // desfaz ultimo adiantamento
+    while(tarefaB->getIndice() != firstTask){
+        tarefaB->setTempoInicio( tarefaB->getTempoInicio() + 1);
+        tarefaB->setTempoTermino( tarefaB->getTempoTermino() + 1);
+        tarefaB = tarefaB->getProxima();
+    }
+    tarefaB->setTempoInicio( tarefaB->getTempoInicio() + 1);
+    tarefaB->setTempoTermino( tarefaB->getTempoTermino() + 1);
+    
+    // atrasa bloco
+    funcaoObj = estruturaSolucao->getFuncaoObj();
+    novaFuncaoObj = funcaoObj;
+    
+    cout << " Etapa 5" << endl;
+    
+    while(novaFuncaoObj < funcaoObj){
+        funcaoObj = novaFuncaoObj;
+        tarefaB = tarefaA;
+        
+        while(tarefaB->getIndice() != firstTask){
+            tarefaB->setTempoInicio( tarefaB->getTempoInicio() + 1);
+            tarefaB->setTempoTermino( tarefaB->getTempoTermino() + 1);
+            tarefaB = tarefaB->getProxima();
+        }
+        tarefaB->setTempoInicio( tarefaB->getTempoInicio() + 1);
+        tarefaB->setTempoTermino( tarefaB->getTempoTermino() + 1);
+        
+        novaFuncaoObj = estruturaSolucao->getFuncaoObj();
+    }
+    
+    // desfaz ultimo atraso
+    tarefaB = tarefaA;
+    
+    cout << " Etapa 6" << endl;
+    
+    while(tarefaB->getIndice() != firstTask){
+        tarefaB->setTempoInicio( tarefaB->getTempoInicio() - 1);
+        tarefaB->setTempoTermino( tarefaB->getTempoTermino() - 1);
+        tarefaB = tarefaB->getProxima();
+    }
+    
+    tarefaB->setTempoInicio( tarefaB->getTempoInicio() - 1);
+    tarefaB->setTempoTermino( tarefaB->getTempoTermino() - 1);
+    
+    if((tarefaB->getProxima() != NULL) && (tarefaB->getTempoInicio() == tarefaB->getProxima()->getTempoTermino())){
+        novaFuncaoObj = funcaoObj + 1;
+    }
+}
+
+void Principal::atualizarBestSolucaoVazia(EstruturaSolucao *solucaoMaquina, double *taxaSolucao){
+    this->bestSolutionFormiga->transferirTarefas(solucaoMaquina);
+    this->bestSolutionFormiga->calcularFuncaoObj(dataEntrega,alfa,beta);
+    cout << "\n ___\n Funcao primeira : " << bestSolutionFormiga->getFuncaoObj() << " \n ____ \n" << endl;
+    *taxaSolucao = 1;
+    atualizarFeromonio(this->bestSolutionFormiga,*taxaSolucao);
+}
+
+void Principal::atualizarBestSolucao(EstruturaSolucao *solucaoMaquina, double *taxaSolucao, int *numGeracoes) {
+    solucaoMaquina->calcularFuncaoObj(dataEntrega,alfa,beta);
+    *taxaSolucao = ((double)this->bestSolutionFormiga->getFuncaoObj() / (double)solucaoMaquina->getFuncaoObj() );
+    atualizarFeromonio(solucaoMaquina,*taxaSolucao);
+
+    cout << "\n\n Funcao atual : " << solucaoMaquina->getFuncaoObj() << " funcao melhor : " << this->bestSolutionFormiga->getFuncaoObj() << endl;
+
+    if(this->bestSolutionFormiga->getFuncaoObj() > solucaoMaquina->getFuncaoObj()){
+        this->bestSolutionFormiga->finalizarGrafo();
+        this->bestSolutionFormiga->transferirTarefas(solucaoMaquina);
+        this->bestSolutionFormiga->setFuncaoObj( solucaoMaquina->getFuncaoObj());
+
+        *numGeracoes = numIteracao;
+
+        cout << "\n------------------------------------------------------------\n";
+        this->bestSolutionFormiga->imprimirGrafo();
+        cout << "\n------------------------------------------------------------\n";
+
+    }else{
+        solucaoMaquina->finalizarGrafo();
+    }
+    imprimirMatrizFeromonio();
 }
 
 /*
@@ -205,7 +387,7 @@ void Principal::executar(){
  */
 void Principal::calcularLimiteMinimo(int *vetor) {
     int menorPoluicao = 0;
-    int calcPoluicao = 0;
+    int calculoPoluicao = 0;
     int maqMenorPoluicao = 0;
     
     for(int index = 0; index < this->qntMaquinas; index++){
@@ -218,9 +400,9 @@ void Principal::calcularLimiteMinimo(int *vetor) {
         menorPoluicao = this->custoPoluicaoMaquina[maqMenorPoluicao] * this->matrizTempoTarefas[index][maqMenorPoluicao];
         
         for(int indexMaq = 1; indexMaq < this->qntMaquinas; indexMaq++){
-            calcPoluicao = this->custoPoluicaoMaquina[indexMaq] * this->matrizTempoTarefas[index][indexMaq];
-            if(menorPoluicao > calcPoluicao){
-                menorPoluicao = calcPoluicao;
+            calculoPoluicao = this->custoPoluicaoMaquina[indexMaq] * this->matrizTempoTarefas[index][indexMaq];
+            if(menorPoluicao > calculoPoluicao){
+                menorPoluicao = calculoPoluicao;
                 maqMenorPoluicao = indexMaq;
             }
         }
@@ -232,18 +414,15 @@ void Principal::calcularLimiteMinimo(int *vetor) {
     }    
 }
 
-int Principal::calcularExtra(int *limiteMin) {
-    int extra = 0;
-    for(int index = 0; index < this->qntMaquinas; index++){
-        extra += limiteMin[index];
-    }
-    extra = this->limitePoluicao - extra;
-    cout << "Extra : " << extra << endl;
-    return extra;
-}
-
 void Principal::calcularValorAdicional(int* valorAdic, double *valorNormal, int extra, int* limiteMin) {
     /* Inicializar o vetor da taxa adicional para com os valores aleatorios*/
+    int total = 0;
+    
+    for(int index = 0; index < this->qntMaquinas; index++){
+        total += limiteMin[index];
+    }
+    extra = this->limitePoluicao - total;
+    
     for(int indexMaq = 0; indexMaq < this->qntMaquinas; indexMaq++){
         valorAdic[indexMaq] = getRandomNumero(100,0);
         *valorNormal += valorAdic[indexMaq];
@@ -251,9 +430,10 @@ void Principal::calcularValorAdicional(int* valorAdic, double *valorNormal, int 
     
     for(int indexMaq = 0; indexMaq < this->qntMaquinas; indexMaq++){
         valorAdic[indexMaq] = (valorAdic[indexMaq]/ *valorNormal) * extra;
-        cout << " valor Adic : " <<  valorAdic[indexMaq] << endl;
+        cout << "\n Valor Adic : " <<  valorAdic[indexMaq] << endl;
         limiteMin[indexMaq] += valorAdic[indexMaq];
         cout << " Limite Min : " <<  limiteMin[indexMaq] << endl;
+        cout << " Limite Poluicao : " << this->limitePoluicao << endl;
     }
 }
 
@@ -261,6 +441,34 @@ int Principal::getProximaTarefaAleatoria() {
     int tarefasNaoMarcadas = this->qntTarefas - this->grafo->getNumTarefasMarcadas() ;
     return this->grafo->getIndiceEnesimaTarefaNaoMarcada(tarefasNaoMarcadas);
 }
+
+int Principal::escolherMelhorCaminho(Grafo* grafo, int indiceTarefaAnterior, double totalFeromonio,int indexMaquina) {
+    int valor =  0;
+    int indice = 0;
+    int div = 1000;
+    
+    if(totalFeromonio < 1){
+        valor = (totalFeromonio * div);
+        
+        if(valor == 0){
+            valor = getRandomNumero(1,0);
+        }else{        
+            valor = getRandomNumero(valor,0);
+            valor = valor / div;
+        }
+    }else{
+        valor = getRandomNumero(totalFeromonio,0);
+    }
+    
+    for(int index = 0; index < grafo->getTamanho(); index++){
+        if(grafo->getListaTarefaTotal(index)->getSelecionada()== false){
+            valor = valor - matrizFeromonio[indexMaquina][indiceTarefaAnterior][index];
+            indice = index;
+        }
+    }    
+    return indice;
+}
+
 
 /**
  *  Cria o grafo completo com as tarefas, em que cada posição do vetor 
@@ -271,21 +479,21 @@ void Principal :: criarGrafo(int qntTarefas){
     this->grafo->criarGrafoCompleto(qntTarefas);
 }
 
-Grafo* Principal::getBestSolutionFormiga() {
+EstruturaSolucao* Principal::getBestSolutionFormiga() {
     return this->bestSolutionFormiga;
 }
 
-void Principal::setBestSolutionFormiga(Grafo* bestSolutionFormiga) {
+void Principal::setBestSolutionFormiga(EstruturaSolucao* bestSolutionFormiga) {
     this->bestSolutionFormiga = bestSolutionFormiga;
 }
 
-void Principal::atualizarFeromonio(Grafo *solucao, double taxaSolucao) {
+void Principal::atualizarFeromonio(EstruturaSolucao *solucao, double taxaSolucao) {
     double taxaEvaporacao = 0.3;
     evaporarFeromonio(solucao,taxaEvaporacao,taxaSolucao);
     incrementarFeromonio(solucao,taxaEvaporacao,taxaSolucao);
 }
 
-void Principal::evaporarFeromonio(Grafo *solucao,double taxaEvaporacao,double taxaSolucao) {
+void Principal::evaporarFeromonio(EstruturaSolucao *solucao,double taxaEvaporacao,double taxaSolucao) {
     for(int indexMaquina = 0; indexMaquina < this->qntMaquinas; indexMaquina++){
         for(int indexI = 0; indexI < qntTarefas; indexI++){
             for(int indexJ = 0; indexJ < this->qntTarefas; indexJ++){
@@ -299,17 +507,29 @@ void Principal::evaporarFeromonio(Grafo *solucao,double taxaEvaporacao,double ta
     }
 }
 
-void Principal::incrementarFeromonio(Grafo *solucao,double taxaEvaporacao,double taxaSolucao){
+void Principal::incrementarFeromonio(EstruturaSolucao *solucao,double taxaEvaporacao,double taxaSolucao){
     for(int indexMaquina = 0; indexMaquina < this->qntMaquinas; indexMaquina++){
-        Tarefa *t = solucao->getListaTarefa(indexMaquina);
+        Tarefa *t = solucao->getListaTarefaProxima(indexMaquina);
         
-        while(t->getProxima() != NULL){
+        while((t != NULL)&&(t->getProxima() != NULL)){
             int indexAtual = t->getIndice();
             int indexProximo = t->getProxima()->getIndice();
             matrizFeromonio[indexMaquina][indexProximo][indexAtual] = matrizFeromonio[indexMaquina][indexProximo][indexAtual]  + taxaSolucao * taxaEvaporacao;
             t = t->getProxima();
         }
     }
+}
+
+double Principal::calcularTotalFeromonio(Grafo *grafo, int indiceMaquina, int indiceVetor, double ***matrizFeromonio) {
+    double totalFeromonio = 0.0;
+    
+    for(int index = 0; index < grafo->getTamanho(); index++){
+        if(grafo->getListaTarefaTotal(index)->getSelecionada()== false){
+            totalFeromonio += matrizFeromonio[indiceMaquina][indiceVetor][index];
+        }
+    }
+    
+    return totalFeromonio;
 }
 
 /**
@@ -334,6 +554,7 @@ void Principal::imprimirMatrizFeromonio() {
  */
 void Principal :: desalocarEstruturas(){
     delete this->grafo;
+//    delete this->bestSolutionFormiga;
     desalocarMatriz(this->arestasSetup,this->qntTarefas,this->qntTarefas);
     desalocarMatriz(this->matrizFeromonio,this->qntMaquinas,this->qntTarefas);
 }
